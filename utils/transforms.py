@@ -1,4 +1,6 @@
 import random
+import torchvision.transforms as tfs
+from torchvision.transforms import functional as F
 from torchvision.transforms import v2
 
 
@@ -43,3 +45,23 @@ class RandomVerticalFlip(v2.RandomVerticalFlip):
       image = v2.functional.vflip(image)
       label = v2.functional.vflip(label)
     return (image, label)
+
+class RandomCropMaxSquare(object):
+  def __call__(self, sample):
+    image, label = sample
+    min_edge = min(image.shape[1], image.shape[2])
+    crop_params = tfs.RandomCrop.get_params(image, (min_edge, min_edge))
+    image = F.crop(image, *crop_params)
+    label = F.crop(label, *crop_params)
+
+    return image, label
+
+class Resize(object):
+  def __init__(self, size):
+    self.size = size
+
+  def __call__(self, sample):
+    image, label = sample
+    image = F.resize(image, self.size)
+    label = F.resize(label, self.size)
+    return image, label
